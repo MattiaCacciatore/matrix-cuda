@@ -1,1 +1,16 @@
-!
+Results are just incredible.
+
+My tests were focused only on performance CPU vs GPU in matrix multiplication.
+
+My CPU: AMD Ryzen 5 5600X 6-cores
+My GPU: NVIDIA GeForce RTX 3070
+
+As you can see the GPU can performs the operation up to 67k times faster than CPU (and maybe 100k but i haven't tested it yet because i don't want to wait hours),
+then results are checked in the code with the correct answer (CPU).
+I found out float precision is very low, with +-3.5 difference between 2 numbers with 5000x5000 matrices, instead of long double precision which is ok.
+This is probably caused by machine epsilon bound/relative approximation error (https://en.wikipedia.org/wiki/Machine_epsilon) with the standard IEEE-754 floating point
+type, since we're in a multi-threaded environment, dot and sum operations are NOT sequential, and due to machine epsilon: (a+b)+c can be different from a+(b+c),
+therefore truncations and rounding of partial sum could happen.
+It would be interesting make some calculations in order to find out the upper bound error of relative approximation error with a fixed size of matrix.
+
+My GPU can handle up to 25000x25000 matrices (25000*25000*3(matrices)*4(byte - int size) = 7,5 GB).
