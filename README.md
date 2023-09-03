@@ -40,22 +40,31 @@ called "installation details", then select "Install".
  
 </details>
 
-## test results
+## Motivation
+
+I like working in multi-thread envirorment, it's hard. I was interested in the 'GPU vs CPU performance' topic and wanted to see for myself.
+
+## Problem solved - test results
 
 Tests were carried out on a NVIDIA GeForce RTX 3070 card and you can see them in /res folder.
 
-# Note
+# Knowledge - Notes
 
 1. Function *gpu_matrix_mult*: A naive implementation on GPUs assigns one thread to compute one element of matrix C. 
 Each thread loads one row of matrix A and one column of matrix B from global memory, do the inner product, and store the result back to matrix C in the global memory. 
 In the naive implementation, the amount of computation is 2 x M x N x K flop, while the amount of global memory access is 2 x M x N x K word.
 The "computation-to-memory ratio" is approximately 1/4 (flop/byte). Therefore, the naive implementation is memory bandwidth bounded.
 
-2. I have removed some functions like gpu_transponse and square_multiplication because i don't need them. I've added some code so timestamps are very precise now,
-you can execute it on Windows and Unix, all functions are checked.
+2. I have removed some functions like *gpu_square_matrix_mult* and *gpu_matrix_transpose* because i don't need them.
+I've added some code so timestamps are very precise now, you can execute it on Windows and Unix, all functions are checked.
+Beware that Unix code isn't tested yet.
 
-# todo
+3. I've set BLOCK_SIZE to 256 instead of 16 because i wanted to see and check if i could get better performance, you can see result in the /res folder.
 
-(1) further optimization, especially the "computation-to-memory ratio" for non square matrix.
+# Improvable - to do
 
-(2) solve shared Mem Bank conflict issue and Global Memory does not coalesced issue.
+1. Further optimization, especially the "computation-to-memory ratio" for non square matrix.
+
+2. Solve shared Mem Bank conflict issue and Global Memory does not coalesced issue.
+
+3. Estimate the upper bound of the relative approximation error given a fixed MxN matrix (see notes in /res folder).
