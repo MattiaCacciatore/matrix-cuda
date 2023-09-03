@@ -14,3 +14,6 @@ therefore truncations and rounding of partial sum could happen.
 It would be interesting make some calculations in order to find out the upper bound error of relative approximation error with a fixed size of matrix.
 
 My GPU can handle up to 25000x25000 matrices (25000*25000*3(matrices)*4(byte - int size) = 7,5 GB).
+
+With BLOCK_SIZE set to 256 you can see that 256*256 (65536) threads per block and 1255/256 (4) blocks grant a boost performance up to 18 times with 5000x5000 matrices
+with the NVIDIA GeForce RTX 3070 card.
