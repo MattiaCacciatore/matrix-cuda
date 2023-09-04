@@ -16,15 +16,15 @@ How to install nvcc:
 - Download and install CUDA toolkit (https://developer.nvidia.com) with Windows - x86_64 and your OS options flagged.
 
 If the shell shows "nvcc fatal: Cannot find compiler 'cl.exe' in PATH" error, try to follow these steps:
-- Now nvcc requires cl.exe that you need to download from Microsoft Visual Studio (https://visualstudio.microsoft.com/it/).
+- Now nvcc requires cl.exe that you need to download from Microsoft Visual Studio (https://visualstudio.microsoft.com/).
 - Choose Visual Studio Community and download it.
 - Execute VisualStudioSetup.exe from your download folder.
 - Select Visual Studio Community and install it.
 - In "Desktop and mobile devices" section check and flag "development of desktop application with C++" with all its options in the right box
-called "installation details", then select "Install".
+called "installation details", then click on "Install" button.
 - It should work now, but if that isn't the case then you have to add the cl.exe path to the environment variable PATH.
-- (Windows 10) Open Control Panel -> select System and Security -> select System -> select Advanced System Settings
--> select Environment Variables -> select 'Path' then click on Modify -> click on New then add your path to the cl.exe executable file
+- [Windows 10] Open Control Panel -> select System and Security -> select System -> select Advanced System Settings
+-> click on Environment Variables button -> select 'Path' then click on Modify button -> click on New then add your path to the cl.exe executable file
 (it should be something like C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.37.32822\bin\Hostx64\x64).
 
 2. Download and compile in Unix:
@@ -35,8 +35,8 @@ called "installation details", then select "Install".
   
   $ ./a.out
   ```
- Warning: this step for Unix OS don't guarantee that it will work because i installed nvcc on VM and it seems that more steps are required.
- I haven't done them yet and it requires further investigation.
+ Warning: this step for Unix OS don't guarantee that it will work because i installed nvcc on my VM and it seems that more steps are required.
+ Futhermore the GPU isn't recognized as a device inside the VM by default, it requires further investigation.
  
 </details>
 
