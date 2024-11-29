@@ -3,7 +3,7 @@
  *
  *  matrix.cu contains the code that realize matrix multiplication operation in CUDA
  *  
- *  This is a toy program for learning CUDA, some functions are reusable in other project.
+ *  This is a toy program for learning CUDA, some functions are reusable in other project(s).
  */
 #include <iostream>
 #include <string>
@@ -19,11 +19,11 @@
 
 using namespace std::chrono;
 
-typedef int matrix_type;
-// Tollerance for floating points operations.
+typedef double matrix_type;
+// Tollerance for floating point operations.
 const matrix_type mytoll = 0.1;
 
-#define BLOCK_SIZE 256
+#define BLOCK_SIZE 32
 /* 
 It performs product of two matrix (not only square) using GPU Nvidia.
 
@@ -76,11 +76,11 @@ void cpu_matrix_mult(matrix_type* c_a, matrix_type* c_b, matrix_type* c_c, const
 int main(){
     int m, n, k;
     srand(time(NULL));
-    std::cout << "Insert M: ";
+    std::cout << "This program will compute a matrix multiplication of A(MxN) and B(NxK).\nPlease insert the size of M: ";
     std::cin >> m;
-    std::cout << "Insert N: ";
+    std::cout << "Please insert the size of  N: ";
     std::cin >> n;
-    std::cout << "Insert K: ";
+    std::cout << "Please insert the size of  K: ";
     std::cin >> k;
 
     if(m < 1 || n < 1 || k < 1) m = n = k = 1;
@@ -95,7 +95,7 @@ int main(){
     high_resolution_clock::time_point start, end;
 
     std::wstring processor_name;
-
+    // gpu_r is used to store GPU result. 
     matrix_type* cpu_a,* cpu_b,* cpu_c,* gpu_r,* gpu_a,* gpu_b,* gpu_c;
 
     unsigned int grid_rows = (m + BLOCK_SIZE - 1) / BLOCK_SIZE;
@@ -103,7 +103,7 @@ int main(){
     dim3 dimGrid(grid_cols, grid_rows);
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
 
-    // Allocate memory in host RAM, gpu_r is used to store CPU result. Allocate memory space on the device (GPU).
+    // Allocate memory in host and device (aka GPU) RAM.
     if(cudaMallocHost((void **) &cpu_a, sizeof(matrix_type)*m*n) != cudaSuccess || cudaMallocHost((void **) &cpu_b, sizeof(matrix_type)*n*k) != cudaSuccess
        || cudaMallocHost((void **) &cpu_c, sizeof(matrix_type)*m*k) != cudaSuccess  || cudaMallocHost((void **) &gpu_r, sizeof(matrix_type)*m*k) != cudaSuccess
        || cudaMalloc((void **) &gpu_a, sizeof(matrix_type)*m*n) != cudaSuccess || cudaMalloc((void **) &gpu_b, sizeof(matrix_type)*n*k) != cudaSuccess 
@@ -113,28 +113,29 @@ int main(){
     // Random initialization of matrix A and B.
     for (int i = 0; i < m; ++i) {
         for (int j = 0; j < n; ++j) {
-            //cpu_a[i * n + j] = ((rand() % 256) + (rand() % 2 == 0 ? 0.2 : -0.3)) * (rand() % 2 == 0 ? 1 : -1); // float.
-            //cpu_b[i * k + j] = ((rand() % 256) + (rand() % 2 == 0 ? 0.2 : -0.3)) * (rand() % 2 == 0 ? 1 : -1);
-            cpu_a[i * n + j] = rand() % 256; // int.
-            cpu_b[i * n + j] = rand() % 256;
+            cpu_a[i * n + j] = ((rand() % 256) + (rand() % 2 == 0 ? 0.2 : -0.3)) * (rand() % 2 == 0 ? 1 : -1); // float.
+            cpu_b[i * k + j] = ((rand() % 256) + (rand() % 2 == 0 ? 0.2 : -0.3)) * (rand() % 2 == 0 ? 1 : -1);
+            //cpu_a[i * n + j] = rand() % 256; // int.
+            //cpu_b[i * n + j] = rand() % 256;
         }
     }
 
-    // Start to count execution time of GPU version.
-    start = high_resolution_clock::now();
     // Copy matrix A and B from host to device memory.
     if(cudaMemcpy(gpu_a, cpu_a, sizeof(matrix_type)*m*n, cudaMemcpyHostToDevice) != cudaSuccess || cudaMemcpy(gpu_b, cpu_b, sizeof(matrix_type)*n*k, cudaMemcpyHostToDevice) != cudaSuccess)
         goto ErrorAndFree;
+    // Start to count execution time of GPU version.
+    start = high_resolution_clock::now();
     // Launch kernel.
     gpu_matrix_mult<<<dimGrid, dimBlock>>>(gpu_a, gpu_b, gpu_c, m, n, k);
-    // Transefr results from device to host 
+    // Time counting terminate.
+    end = high_resolution_clock::now();
+    // Transfer results from device to host.
     if(cudaMemcpy(gpu_r, gpu_c, sizeof(matrix_type)*m*k, cudaMemcpyDeviceToHost) != cudaSuccess)
         goto ErrorAndFree;
     // cudaThreadSynchronize is deprecated. Need to set a thread barrier here.
     if(cudaDeviceSynchronize() != cudaSuccess)
         goto ErrorAndFree;
-    // Time counting terminate.
-    end = high_resolution_clock::now();
+
     gpu_elapsed_time_ms = duration_cast<milliseconds>(end - start).count();
 
     // Try to get the gpu model's name. It should be the gpu model's name, take it with a grain of salt and test it.
@@ -145,14 +146,13 @@ int main(){
                 << gpu_properties.name << "\n(GPU) : ";
     printf("%.3f", (gpu_elapsed_time_ms/1000.0));
     std::cout << " seconds\n\n";
-    goto ErrorAndFree;
 
     // Start to count execution time of CPU version.
     start = high_resolution_clock::now();
     cpu_matrix_mult(cpu_a, cpu_b, cpu_c, m, n, k);
     // Time counting terminate.
     end = high_resolution_clock::now();
-	cpu_elapsed_time_ms   = duration_cast<milliseconds>(end - start).count();
+    cpu_elapsed_time_ms   = duration_cast<milliseconds>(end - start).count();
 
     // Try to get the cpu model's name.
 #ifdef _WIN32
