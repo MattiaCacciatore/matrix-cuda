@@ -127,14 +127,14 @@ int main(){
     start = high_resolution_clock::now();
     // Launch kernel.
     gpu_matrix_mult<<<dimGrid, dimBlock>>>(gpu_a, gpu_b, gpu_c, m, n, k);
+    if(cudaDeviceSynchronize() != cudaSuccess)
+        goto ErrorAndFree;
     // Time counting terminate.
     end = high_resolution_clock::now();
     // Transfer results from device to host.
     if(cudaMemcpy(gpu_r, gpu_c, sizeof(matrix_type)*m*k, cudaMemcpyDeviceToHost) != cudaSuccess)
         goto ErrorAndFree;
     // cudaThreadSynchronize is deprecated. Need to set a thread barrier here.
-    if(cudaDeviceSynchronize() != cudaSuccess)
-        goto ErrorAndFree;
 
     gpu_elapsed_time_ms = duration_cast<milliseconds>(end - start).count();
 
