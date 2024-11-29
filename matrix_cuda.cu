@@ -5,6 +5,7 @@
  *  
  *  This is a toy program for learning CUDA, some functions are reusable in other project(s).
  */
+//-------------------------------------------------------LIBRARIES------------------------------------------------------------
 #include <iostream>
 #include <string>
 #include <cmath>          // abs().
@@ -18,12 +19,25 @@
 #endif
 
 using namespace std::chrono;
-
+//---------------------------------------------------GLOBAL AND MACROS--------------------------------------------------------
 typedef double matrix_type;
 // Tollerance for floating point operations.
 const matrix_type mytoll = 0.1;
-
+// NOTE: in case of cudaErrorInvalidConfiguration try to lower this size.
 #define BLOCK_SIZE 32
+
+/*
+Source: https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
+A good way to check for errors in runtime API code is to define an assert style handler function and wrapper macro like this.
+*/
+#define gpu_error_checker(err){gpu_assert((err), __FILE__, __LINE__);}
+//-------------------------------------------------------FUNCTIONS------------------------------------------------------------
+inline void gpu_assert(cudaError_t code, const char* file, int line){
+   if(code != cudaSuccess){
+      fprintf(stderr, "\nWARNING: %s(%d): runtime error: (%s) %s.\n", file, line, cudaGetErrorName(code), cudaGetErrorString(code));
+      std::cerr << "Please check NVIDIA CUDA runtime API errors.\n";
+   }
+}
 /* 
 It performs product of two matrix (not only square) using GPU Nvidia.
 
@@ -89,12 +103,12 @@ int main(){
     std::ifstream cpuinfo("/proc/cpuinfo");
     std::string line, cpu_name;
 #endif
-
     // Count the execution time.
     double gpu_elapsed_time_ms = 0, cpu_elapsed_time_ms = 0;
     high_resolution_clock::time_point start, end;
 
     std::wstring processor_name;
+
     // gpu_r is used to store GPU result. 
     matrix_type* cpu_a,* cpu_b,* cpu_c,* gpu_r,* gpu_a,* gpu_b,* gpu_c;
 
@@ -127,6 +141,9 @@ int main(){
     start = high_resolution_clock::now();
     // Launch kernel.
     gpu_matrix_mult<<<dimGrid, dimBlock>>>(gpu_a, gpu_b, gpu_c, m, n, k);
+
+    gpu_error_checker(cudaPeekAtLastError());
+    // cudaThreadSynchronize is deprecated. Need to set a thread barrier here.
     if(cudaDeviceSynchronize() != cudaSuccess)
         goto ErrorAndFree;
     // Time counting terminate.
@@ -134,7 +151,6 @@ int main(){
     // Transfer results from device to host.
     if(cudaMemcpy(gpu_r, gpu_c, sizeof(matrix_type)*m*k, cudaMemcpyDeviceToHost) != cudaSuccess)
         goto ErrorAndFree;
-    // cudaThreadSynchronize is deprecated. Need to set a thread barrier here.
 
     gpu_elapsed_time_ms = duration_cast<milliseconds>(end - start).count();
 
@@ -216,7 +232,7 @@ int main(){
     return 0;
 
 ErrorAndFree:
-    std::cout << "Something went wrong!\n";
+    std::cerr << "Something went wrong!\n";
     cudaFree(gpu_a);
     cudaFree(gpu_b);
     cudaFree(gpu_c);
