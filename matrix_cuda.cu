@@ -90,11 +90,11 @@ void cpu_matrix_mult(matrix_type* c_a, matrix_type* c_b, matrix_type* c_c, const
 int main(){
     int m, n, k;
     srand(time(NULL));
-    std::cout << "This program will compute a matrix multiplication of A(MxN) and B(NxK).\nPlease insert the size of M: ";
+    std::cout << "This program will compute a matrix multiplication of A (M*N) and B (N*K).\nPlease insert the size of M: ";
     std::cin >> m;
-    std::cout << "Please insert the size of  N: ";
+    std::cout << "Please insert the size of N: ";
     std::cin >> n;
-    std::cout << "Please insert the size of  K: ";
+    std::cout << "Please insert the size of K: ";
     std::cin >> k;
 
     if(m < 1 || n < 1 || k < 1) m = n = k = 1;
